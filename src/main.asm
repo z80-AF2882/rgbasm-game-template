@@ -141,10 +141,15 @@ CpTiles:
     ld a, SIM_STEP
     ld [NextFrame], a
 
+    ld a, $c3
+    ldh [UpdateSub], a
+    ld a, HIGH(Stage0)
+    ldh [UpdateSub.addrHigh], a
+    ld a, LOW(Stage0)
+    ldh [UpdateSub.addrLow], a
+
     ei
     nop
-
-    jp Init
 
 GameLoop:
     ; Increase frame count
@@ -177,7 +182,8 @@ GameLoop:
     or b    ; add dpad
     ; Store into variable
     ldh [Joypad], a
-    jp Update
+    jp UpdateSub
+    
     ; Yield CPU until next frame
 Sleep::
     halt					
@@ -198,6 +204,15 @@ Stack:
 SECTION "DmaSub", HRAM[$FF80]
 DmaSub:
     DS DmaSubCode.end - DmaSubCode
+
+SECTION "UpdateSub", HRAM
+UpdateSub::
+    DS 1    ;   jp hi lo
+.addrLow::
+    DS 1
+.addrHigh::
+    DS 1
+
 
 SECTION "HRAM Variables", HRAM	
 InputAsync:
